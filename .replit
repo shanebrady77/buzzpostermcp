@@ -38,3 +38,8 @@ expertMode = true
 [nix]
 channel = "stable-25_05"
 packages = ["postgresql"]
+
+[userenv]
+
+[userenv.shared]
+BASE_URL = "https://a0c124c6-99d1-4888-863d-206ede11f883-00-387fbpji0plxg.janeway.replit.dev"
