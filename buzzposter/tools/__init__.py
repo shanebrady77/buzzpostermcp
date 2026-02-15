@@ -20,6 +20,7 @@ from .social import (
     buzzposter_schedule_post,
     buzzposter_list_posts,
     buzzposter_post_analytics,
+    buzzposter_late_connection,
 )
 from .media import (
     buzzposter_upload_media,
@@ -63,6 +64,7 @@ __all__ = [
     "buzzposter_schedule_post",
     "buzzposter_list_posts",
     "buzzposter_post_analytics",
+    "buzzposter_late_connection",
     # Media tools
     "buzzposter_upload_media",
     "buzzposter_list_media",

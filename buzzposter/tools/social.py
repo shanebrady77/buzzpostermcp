@@ -1,6 +1,7 @@
 """
 Late.dev social media posting tools
 """
+import os
 import httpx
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -8,6 +9,7 @@ from ..auth.middleware import UserContext, check_rate_limit, check_feature_acces
 
 
 LATE_API_BASE = "https://getlate.dev/api/v1"
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 
 
 async def _make_late_request(
@@ -22,7 +24,12 @@ async def _make_late_request(
     Handles token refresh if needed
     """
     if not user_ctx.late_token:
-        return {"error": "Late.dev account not connected. Please connect via /auth/late/connect"}
+        connect_url = f"{BASE_URL}/auth/late/connect?api_key={user_ctx.user.buzzposter_api_key}"
+        return {
+            "error": "Late.dev account not connected. You need to connect your social media accounts first.",
+            "connect_url": connect_url,
+            "action_required": "Visit the connect_url in your browser to link your social media accounts via Late.dev.",
+        }
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         try:
@@ -60,8 +67,18 @@ async def _make_late_request(
                         response.raise_for_status()
                         return response.json()
                     except Exception:
-                        return {"error": "Token expired. Please reconnect via /auth/late/connect"}
-                return {"error": "Token expired. Please reconnect via /auth/late/connect"}
+                        connect_url = f"{BASE_URL}/auth/late/connect?api_key={user_ctx.user.buzzposter_api_key}"
+                        return {
+                            "error": "Late.dev token expired and refresh failed. Please reconnect.",
+                            "connect_url": connect_url,
+                            "action_required": "Visit the connect_url in your browser to reconnect your social media accounts.",
+                        }
+                connect_url = f"{BASE_URL}/auth/late/connect?api_key={user_ctx.user.buzzposter_api_key}"
+                return {
+                    "error": "Late.dev token expired. Please reconnect.",
+                    "connect_url": connect_url,
+                    "action_required": "Visit the connect_url in your browser to reconnect your social media accounts.",
+                }
             return {"error": f"Late.dev API error: {e.response.status_code} - {e.response.text}"}
 
         except httpx.HTTPError as e:
@@ -279,3 +296,73 @@ async def buzzposter_post_analytics(
         await log_usage(user_ctx, "buzzposter_post_analytics")
 
     return result
+
+
+async def buzzposter_late_connection(
+    user_ctx: UserContext,
+    action: str = "status",
+) -> Dict[str, Any]:
+    """
+    Manage Late.dev social media connection.
+    Check status, get the connect URL, or disconnect.
+
+    Args:
+        user_ctx: User context with auth and db
+        action: "status" to check connection, "disconnect" to unlink account
+
+    Returns:
+        Connection status with connect URL, or disconnect confirmation
+    """
+    from ..auth.late_oauth import check_connection_status, clear_tokens
+
+    api_key = user_ctx.user.buzzposter_api_key
+    connect_url = f"{BASE_URL}/auth/late/connect?api_key={api_key}"
+
+    if action == "disconnect":
+        if not user_ctx.late_token:
+            return {
+                "status": "not_connected",
+                "message": "No Late.dev account is connected.",
+                "connect_url": connect_url,
+            }
+        await clear_tokens(user_ctx.db, api_key)
+        return {
+            "status": "disconnected",
+            "message": "Late.dev account has been disconnected. Your social media accounts are no longer linked.",
+            "connect_url": connect_url,
+        }
+
+    # Default: status check
+    status = await check_connection_status(user_ctx.db, api_key)
+
+    if status["connected"]:
+        accounts = status.get("accounts", {})
+        if isinstance(accounts, dict) and "data" in accounts:
+            accounts_list = accounts["data"]
+        elif isinstance(accounts, list):
+            accounts_list = accounts
+        else:
+            accounts_list = []
+
+        platform_summary = []
+        for account in accounts_list:
+            platform = account.get("platform", "Unknown")
+            username = account.get("username", account.get("name", ""))
+            platform_summary.append({"platform": platform, "username": username})
+
+        return {
+            "status": "connected",
+            "accounts": platform_summary,
+            "account_count": len(platform_summary),
+            "connect_url": connect_url,
+            "message": f"Connected with {len(platform_summary)} social account(s). Visit connect_url to add more accounts.",
+        }
+    else:
+        result = {
+            "status": "not_connected",
+            "connect_url": connect_url,
+            "message": "No Late.dev account connected. Visit the connect_url in your browser to link your social media accounts (Twitter, LinkedIn, Facebook, etc.).",
+        }
+        if "error" in status:
+            result["error"] = status["error"]
+        return result

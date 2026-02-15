@@ -18,6 +18,8 @@ class User(Base):
     tier = Column(String(50), default="free", nullable=False)  # free, pro, business
     late_oauth_token = Column(Text, nullable=True)
     late_refresh_token = Column(Text, nullable=True)
+    late_token_expires_at = Column(DateTime, nullable=True)
+    late_oauth_state = Column(String(255), nullable=True)  # Temporary state for OAuth CSRF protection
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 

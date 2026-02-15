@@ -24,9 +24,13 @@ from .db import (
 from .auth import (
     get_user_from_request,
     validate_api_key,
+    generate_oauth_state,
+    resolve_oauth_state,
     get_authorization_url,
     exchange_code_for_token,
     save_tokens,
+    clear_tokens,
+    validate_token,
     check_connection_status,
     create_checkout_session,
     handle_checkout_completed,
@@ -66,6 +70,7 @@ from .tools import (
     buzzposter_publish_webflow,
     buzzposter_connect_platform,
     buzzposter_list_integrations,
+    buzzposter_late_connection,
 )
 
 
@@ -606,7 +611,23 @@ async def list_tools() -> list[Tool]:
                 "required": ["title", "content"]
             }
         ),
-        # Connection management tools
+        # Late.dev connection management
+        Tool(
+            name="buzzposter_late_connection",
+            description="Manage your Late.dev social media connection. Check connection status to see which accounts are linked, get the URL to connect new accounts, or disconnect. Use this before trying to post if you're unsure whether social accounts are connected.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "description": "Action to perform: 'status' to check connection and get connect URL, 'disconnect' to unlink Late.dev account",
+                        "enum": ["status", "disconnect"],
+                        "default": "status"
+                    }
+                }
+            }
+        ),
+        # Newsletter/CMS connection management tools
         Tool(
             name="buzzposter_connect_platform",
             description="Connect a newsletter or CMS platform by providing credentials. Platforms: beehiiv, kit, mailchimp, wordpress, ghost, webflow. Requires Pro or Business tier.",
@@ -679,6 +700,7 @@ async def call_tool(name: str, arguments: dict, request: Request) -> list[TextCo
             "buzzposter_publish_ghost": lambda: buzzposter_publish_ghost(user_ctx, **arguments),
             "buzzposter_draft_webflow": lambda: buzzposter_draft_webflow(user_ctx, **arguments),
             "buzzposter_publish_webflow": lambda: buzzposter_publish_webflow(user_ctx, **arguments),
+            "buzzposter_late_connection": lambda: buzzposter_late_connection(user_ctx, **arguments),
             "buzzposter_connect_platform": lambda: buzzposter_connect_platform(user_ctx, **arguments),
             "buzzposter_list_integrations": lambda: buzzposter_list_integrations(user_ctx),
         }
@@ -769,6 +791,8 @@ async def signup(request: Request, db: AsyncSession = Depends(get_db)):
 async def onboarding(
     api_key: str = Query(..., description="BuzzPoster API key"),
     upgraded: bool = Query(False),
+    connected: bool = Query(False),
+    disconnected: bool = Query(False),
     db: AsyncSession = Depends(get_db)
 ):
     """Onboarding page showing API key and setup instructions"""
@@ -818,9 +842,26 @@ async def onboarding(
     }}
 }}'''
 
-    upgrade_message = ""
+    status_message = ""
     if upgraded:
-        upgrade_message = '<div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px;">✅ Successfully upgraded! Your new features are now active.</div>'
+        status_message = '<div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px;">Successfully upgraded! Your new features are now active.</div>'
+    if connected:
+        status_message = '<div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px;">Social accounts connected successfully! You can now post to social media.</div>'
+    if disconnected:
+        status_message = '<div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">Late.dev account disconnected. You can reconnect anytime.</div>'
+
+    # Pre-compute button HTML (can't use backslashes in f-string expressions)
+    is_connected = connection_status["connected"]
+    connect_label = "Reconnect Social Accounts" if is_connected else "Connect Social Accounts"
+    connect_button_html = f'<a href="/auth/late/connect?api_key={api_key}" class="button">{connect_label}</a>'
+    if is_connected:
+        disconnect_button_html = (
+            f'<a href="/auth/late/disconnect?api_key={api_key}" '
+            'class="button" style="background: #dc3545;" '
+            "onclick=\"return confirm('Disconnect your social accounts?')\">Disconnect</a>"
+        )
+    else:
+        disconnect_button_html = ""
 
     html_content = f"""
     <!DOCTYPE html>
@@ -878,7 +919,7 @@ async def onboarding(
     </head>
     <body>
         <h1>🎉 Welcome to BuzzPoster!</h1>
-        {upgrade_message}
+        {status_message}
 
         <h2>📊 Your Account</h2>
         <p><strong>Email:</strong> {user_ctx.user.email}</p>
@@ -893,7 +934,8 @@ async def onboarding(
             <strong>Connection Status:</strong><br>
             {social_accounts_html}
         </div>
-        <a href="/auth/late/connect?api_key={api_key}" class="button">Connect Social Accounts</a>
+        {connect_button_html}
+        {disconnect_button_html}
 
         <h2>⚙️ Claude Desktop Configuration</h2>
         <p>Add this to your Claude Desktop configuration file:</p>
@@ -922,7 +964,7 @@ async def onboarding(
 
 @app.get("/auth/late/connect")
 async def late_connect(api_key: str = Query(...), db: AsyncSession = Depends(get_db)):
-    """Initiate Late.dev OAuth flow"""
+    """Initiate Late.dev OAuth flow with secure state parameter"""
 
     # Validate API key exists
     try:
@@ -930,43 +972,120 @@ async def late_connect(api_key: str = Query(...), db: AsyncSession = Depends(get
     except HTTPException:
         raise HTTPException(status_code=401, detail="Invalid API key")
 
-    # Generate authorization URL
-    auth_url = get_authorization_url(api_key)
+    # Generate secure state and store it (instead of leaking API key in URL)
+    state = await generate_oauth_state(db, api_key)
+
+    # Generate authorization URL with secure state
+    auth_url = get_authorization_url(state)
 
     return RedirectResponse(url=auth_url)
 
 
 @app.get("/auth/late/callback")
 async def late_callback(
-    code: str = Query(...),
-    state: str = Query(...),  # This is the API key
+    code: str = Query(None),
+    state: str = Query(None),
+    error: str = Query(None),
+    error_description: str = Query(None),
     db: AsyncSession = Depends(get_db)
 ):
-    """Handle Late.dev OAuth callback"""
+    """Handle Late.dev OAuth callback with error handling"""
 
-    api_key = state
+    # Handle OAuth errors (user denied access, etc.)
+    if error:
+        error_msg = error_description or error
+        return HTMLResponse(
+            f"""
+            <html><body style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px;">
+            <h1>Connection Canceled</h1>
+            <p>The social media connection was not completed: {error_msg}</p>
+            <p>You can try again from your dashboard.</p>
+            <a href="/" style="color: #007bff;">Return Home</a>
+            </body></html>
+            """,
+            status_code=200,
+        )
+
+    if not code or not state:
+        return HTMLResponse(
+            "<h1>Invalid Callback</h1><p>Missing required parameters. Please try connecting again.</p>",
+            status_code=400,
+        )
+
+    # Resolve secure state back to API key
+    try:
+        api_key = await resolve_oauth_state(db, state)
+    except HTTPException:
+        return HTMLResponse(
+            "<h1>Invalid or Expired State</h1><p>This link has expired or was already used. Please try connecting again from your dashboard.</p>",
+            status_code=400,
+        )
+
+    # Exchange code for tokens
+    try:
+        tokens = await exchange_code_for_token(code)
+    except HTTPException as e:
+        return HTMLResponse(
+            f"""
+            <html><body style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px;">
+            <h1>Connection Failed</h1>
+            <p>Could not complete the connection to Late.dev: {e.detail}</p>
+            <p><a href="/auth/late/connect?api_key={api_key}" style="color: #007bff;">Try Again</a></p>
+            </body></html>
+            """,
+            status_code=500,
+        )
+
+    access_token = tokens.get("access_token")
+    refresh_token = tokens.get("refresh_token")
+    expires_in = tokens.get("expires_in")
+
+    if not access_token:
+        return HTMLResponse(
+            "<h1>Connection Failed</h1><p>No access token received from Late.dev. Please try again.</p>",
+            status_code=500,
+        )
+
+    # Validate the token actually works before saving
+    validation = await validate_token(access_token)
+    if validation is None:
+        return HTMLResponse(
+            f"""
+            <html><body style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px;">
+            <h1>Connection Failed</h1>
+            <p>Received token from Late.dev but it failed validation. This may be a temporary issue.</p>
+            <p><a href="/auth/late/connect?api_key={api_key}" style="color: #007bff;">Try Again</a></p>
+            </body></html>
+            """,
+            status_code=500,
+        )
+
+    # Save validated tokens
+    await save_tokens(db, api_key, access_token, refresh_token, expires_in)
+
+    # Redirect to onboarding with success indicator
+    base_url = os.getenv("BASE_URL", "http://localhost:8000")
+    return RedirectResponse(url=f"{base_url}/onboarding?api_key={api_key}&connected=true")
+
+
+@app.get("/auth/late/disconnect")
+async def late_disconnect(
+    api_key: str = Query(...),
+    db: AsyncSession = Depends(get_db)
+):
+    """Disconnect Late.dev account and clear stored tokens"""
 
     # Validate API key
     try:
         await validate_api_key(api_key, db)
     except HTTPException:
-        return HTMLResponse("<h1>Invalid API Key</h1>", status_code=401)
+        raise HTTPException(status_code=401, detail="Invalid API key")
 
-    # Exchange code for tokens
-    try:
-        tokens = await exchange_code_for_token(code)
-        await save_tokens(
-            db,
-            api_key,
-            tokens["access_token"],
-            tokens["refresh_token"]
-        )
-    except Exception as e:
-        return HTMLResponse(f"<h1>OAuth Error</h1><p>{str(e)}</p>", status_code=500)
+    await clear_tokens(db, api_key)
 
-    # Redirect to onboarding
+    # Redirect back to onboarding
     base_url = os.getenv("BASE_URL", "http://localhost:8000")
-    return RedirectResponse(url=f"{base_url}/onboarding?api_key={api_key}")
+    return RedirectResponse(url=f"{base_url}/onboarding?api_key={api_key}&disconnected=true")
 
 
 @app.get("/auth/late/status")
