@@ -26,6 +26,7 @@ class User(Base):
     user_feeds = relationship("UserFeed", back_populates="user", cascade="all, delete-orphan")
     user_profile = relationship("UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
     media_files = relationship("Media", back_populates="user", cascade="all, delete-orphan")
+    integrations = relationship("UserIntegration", back_populates="user", cascade="all, delete-orphan")
 
 
 class UsageLog(Base):
@@ -96,4 +97,25 @@ class Media(Base):
     __table_args__ = (
         Index('idx_user_media', 'user_id'),
         Index('idx_r2_key', 'r2_key'),
+    )
+
+
+class UserIntegration(Base):
+    __tablename__ = "user_integrations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    platform = Column(String(50), nullable=False)  # beehiiv, kit, mailchimp, wordpress, ghost, webflow
+    access_token = Column(Text, nullable=True)
+    refresh_token = Column(Text, nullable=True)
+    metadata = Column(JSON, nullable=True)  # Platform-specific data (pub_id, list_id, site_url, etc.)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationship
+    user = relationship("User", back_populates="integrations")
+
+    # Indexes for efficient queries
+    __table_args__ = (
+        Index('idx_user_platform', 'user_id', 'platform'),
     )
