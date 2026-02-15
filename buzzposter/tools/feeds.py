@@ -2,10 +2,12 @@
 RSS and NewsAPI content sourcing tools
 """
 import os
+import re
 import httpx
 import feedparser
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+from bs4 import BeautifulSoup
 from ..auth.middleware import UserContext, check_rate_limit, check_feature_access, log_usage
 
 
@@ -31,6 +33,63 @@ BUILT_IN_FEEDS = {
         {"name": "Science Daily", "url": "https://www.sciencedaily.com/rss/all.xml"},
     ],
 }
+
+
+def extract_image_from_entry(entry: Any) -> Optional[str]:
+    """
+    Extract first available image URL from RSS feed entry.
+    Checks in priority order:
+    1. media:content or media:thumbnail (common in modern feeds)
+    2. enclosure tags with image MIME types
+    3. First <img> tag in HTML content
+
+    Args:
+        entry: feedparser entry object
+
+    Returns:
+        Image URL string or None if no image found
+    """
+    # Check media:content (common in feeds with embedded media)
+    if hasattr(entry, 'media_content') and entry.media_content:
+        for media in entry.media_content:
+            if media.get('medium') == 'image' or media.get('type', '').startswith('image/'):
+                url = media.get('url')
+                if url:
+                    return url
+
+    # Check media:thumbnail
+    if hasattr(entry, 'media_thumbnail') and entry.media_thumbnail:
+        url = entry.media_thumbnail[0].get('url')
+        if url:
+            return url
+
+    # Check enclosures for images
+    if hasattr(entry, 'enclosures'):
+        for enclosure in entry.enclosures:
+            if enclosure.get('type', '').startswith('image/'):
+                url = enclosure.get('href') or enclosure.get('url')
+                if url:
+                    return url
+
+    # Parse HTML content for <img> tags
+    html_content = entry.get('content', [{}])[0].get('value') if entry.get('content') else None
+    if not html_content:
+        html_content = entry.get('summary') or entry.get('description')
+
+    if html_content:
+        try:
+            soup = BeautifulSoup(html_content, 'html5lib')
+            img = soup.find('img')
+            if img and img.get('src'):
+                src = img.get('src')
+                # Validate it's a reasonable URL
+                if src and (src.startswith('http://') or src.startswith('https://')):
+                    return src
+        except Exception:
+            # Silently fail on HTML parsing errors
+            pass
+
+    return None
 
 
 async def buzzposter_get_feed(user_ctx: UserContext, feed_url: str) -> Dict[str, Any]:
@@ -64,6 +123,7 @@ async def buzzposter_get_feed(user_ctx: UserContext, feed_url: str) -> Dict[str,
                 "description": entry.get("summary", entry.get("description", "")),
                 "published": entry.get("published", entry.get("updated", "")),
                 "author": entry.get("author", ""),
+                "image_url": extract_image_from_entry(entry),
             })
 
         await log_usage(user_ctx, "buzzposter_get_feed")
@@ -177,7 +237,7 @@ async def buzzposter_search_news(
                 "published": article.get("publishedAt", ""),
                 "author": article.get("author", ""),
                 "source": article.get("source", {}).get("name", ""),
-                "image": article.get("urlToImage", ""),
+                "image_url": article.get("urlToImage", ""),
             })
 
         await log_usage(user_ctx, "buzzposter_search_news")

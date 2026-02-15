@@ -47,6 +47,11 @@ from .tools import (
     buzzposter_schedule_post,
     buzzposter_list_posts,
     buzzposter_post_analytics,
+    buzzposter_upload_media,
+    buzzposter_list_media,
+    buzzposter_delete_media,
+    buzzposter_get_storage_usage,
+    buzzposter_post_with_media,
 )
 
 
@@ -91,7 +96,7 @@ async def list_tools() -> list[Tool]:
         # Content sourcing tools
         Tool(
             name="buzzposter_get_feed",
-            description="Fetch and parse any RSS feed. Returns articles with title, link, description, and metadata.",
+            description="Fetch and parse any RSS feed. Returns articles with title, link, description, image_url, and metadata.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -105,7 +110,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="buzzposter_get_topic",
-            description="Get news articles from built-in topic feeds (tech, business, science). Free tier limited to these 3 topics.",
+            description="Get news articles from built-in topic feeds (tech, business, science). Returns articles with image_url when available. Free tier limited to these 3 topics.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -120,7 +125,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="buzzposter_search_news",
-            description="Search news articles using NewsAPI. Requires Pro or Business tier. Search by keywords and get recent news.",
+            description="Search news articles using NewsAPI. Returns articles with image_url when available. Requires Pro or Business tier. Search by keywords and get recent news.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -213,7 +218,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="buzzposter_my_feed",
-            description="Get personalized feed based on your profile and custom feeds.",
+            description="Get personalized feed based on your profile and custom feeds. Returns articles with image_url when available.",
             inputSchema={
                 "type": "object",
                 "properties": {}
@@ -351,6 +356,90 @@ async def list_tools() -> list[Tool]:
                 "required": ["post_id"]
             }
         ),
+        # Media upload tools
+        Tool(
+            name="buzzposter_upload_media",
+            description="Upload media file (image or video) to R2 storage. Returns public URL for use in posts. Requires Pro or Business tier. Pro: 1GB storage, 10MB max file. Business: 10GB storage, 100MB max file.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "file_data": {
+                        "type": "string",
+                        "description": "Base64-encoded file data"
+                    },
+                    "filename": {
+                        "type": "string",
+                        "description": "Original filename with extension (e.g., 'image.jpg')"
+                    },
+                    "content_type": {
+                        "type": "string",
+                        "description": "MIME type (optional, auto-detected if not provided)"
+                    }
+                },
+                "required": ["file_data", "filename"]
+            }
+        ),
+        Tool(
+            name="buzzposter_list_media",
+            description="List all uploaded media files with URLs, sizes, and storage usage. Requires Pro or Business tier.",
+            inputSchema={
+                "type": "object",
+                "properties": {}
+            }
+        ),
+        Tool(
+            name="buzzposter_delete_media",
+            description="Delete a media file from storage. Requires Pro or Business tier.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "media_id": {
+                        "type": "integer",
+                        "description": "ID of the media file to delete"
+                    }
+                },
+                "required": ["media_id"]
+            }
+        ),
+        Tool(
+            name="buzzposter_get_storage_usage",
+            description="Get storage usage statistics (used space, limit, file count). Requires Pro or Business tier.",
+            inputSchema={
+                "type": "object",
+                "properties": {}
+            }
+        ),
+        Tool(
+            name="buzzposter_post_with_media",
+            description="Convenience tool: Upload media and post to social media in one call. Useful for posting Claude-generated images. Requires Pro or Business tier.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "platform": {
+                        "type": "string",
+                        "description": "Social media platform",
+                        "enum": ["twitter", "linkedin", "facebook", "instagram", "threads"]
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "Post content text"
+                    },
+                    "media_data": {
+                        "type": "string",
+                        "description": "Base64-encoded media file (optional)"
+                    },
+                    "media_filename": {
+                        "type": "string",
+                        "description": "Filename for media (required if media_data provided)"
+                    },
+                    "account_id": {
+                        "type": "string",
+                        "description": "Optional specific account ID to post from"
+                    }
+                },
+                "required": ["platform", "content"]
+            }
+        ),
     ]
 
 
@@ -379,6 +468,11 @@ async def call_tool(name: str, arguments: dict, request: Request) -> list[TextCo
             "buzzposter_schedule_post": lambda: buzzposter_schedule_post(user_ctx, **arguments),
             "buzzposter_list_posts": lambda: buzzposter_list_posts(user_ctx, **arguments),
             "buzzposter_post_analytics": lambda: buzzposter_post_analytics(user_ctx, **arguments),
+            "buzzposter_upload_media": lambda: buzzposter_upload_media(user_ctx, **arguments),
+            "buzzposter_list_media": lambda: buzzposter_list_media(user_ctx),
+            "buzzposter_delete_media": lambda: buzzposter_delete_media(user_ctx, **arguments),
+            "buzzposter_get_storage_usage": lambda: buzzposter_get_storage_usage(user_ctx),
+            "buzzposter_post_with_media": lambda: buzzposter_post_with_media(user_ctx, **arguments),
         }
 
         handler = tool_map.get(name)
@@ -504,7 +598,7 @@ async def onboarding(
         social_accounts_html = "<p>Not connected. Click the button below to connect your social accounts.</p>"
 
     base_url = os.getenv("BASE_URL", "http://localhost:8000")
-    config_snippet = f'''{{{
+    config_snippet = f'''{{
     "mcpServers": {{
         "buzzposter": {{
             "type": "url",
@@ -745,6 +839,11 @@ async def billing(
     if canceled:
         cancel_message = '<div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">Payment canceled. You can upgrade anytime.</div>'
 
+    # Prepare button HTML for each tier
+    free_button = '<button class="button" disabled>Current Plan</button>'
+    pro_button = '<button class="button" disabled>Current Plan</button>' if current_tier == 'pro' else '<button class="button" onclick="upgradeTo(\'pro\')">Upgrade to Pro</button>'
+    business_button = '<button class="button" disabled>Current Plan</button>' if current_tier == 'business' else '<button class="button" onclick="upgradeTo(\'business\')">Upgrade to Business</button>'
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -845,7 +944,7 @@ async def billing(
                     <li>Basic RSS feeds</li>
                     <li>No social posting</li>
                 </ul>
-                <button class="button" disabled>Current Plan</button>
+                {free_button}
             </div>
 
             <div class="plan {'current' if current_tier == 'pro' else ''}">
@@ -860,7 +959,7 @@ async def billing(
                     <li>Post scheduling</li>
                     <li>Analytics</li>
                 </ul>
-                {'<button class="button" disabled>Current Plan</button>' if current_tier == 'pro' else '<button class="button" onclick="upgradeTo(\'pro\')">Upgrade to Pro</button>'}
+                {pro_button}
             </div>
 
             <div class="plan {'current' if current_tier == 'business' else ''}">
@@ -873,7 +972,7 @@ async def billing(
                     <li>Advanced analytics</li>
                     <li>Team features (soon)</li>
                 </ul>
-                {'<button class="button" disabled>Current Plan</button>' if current_tier == 'business' else '<button class="button" onclick="upgradeTo(\'business\')">Upgrade to Business</button>'}
+                {business_button}
             </div>
         </div>
 
