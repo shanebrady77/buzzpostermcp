@@ -28,6 +28,22 @@ from .media import (
     buzzposter_get_storage_usage,
     buzzposter_post_with_media,
 )
+from .integrations import (
+    buzzposter_draft_beehiiv,
+    buzzposter_publish_beehiiv,
+    buzzposter_draft_kit,
+    buzzposter_publish_kit,
+    buzzposter_draft_mailchimp,
+    buzzposter_publish_mailchimp,
+    buzzposter_draft_wordpress,
+    buzzposter_publish_wordpress,
+    buzzposter_draft_ghost,
+    buzzposter_publish_ghost,
+    buzzposter_draft_webflow,
+    buzzposter_publish_webflow,
+    buzzposter_connect_platform,
+    buzzposter_list_integrations,
+)
 
 __all__ = [
     # Feed tools
@@ -53,4 +69,19 @@ __all__ = [
     "buzzposter_delete_media",
     "buzzposter_get_storage_usage",
     "buzzposter_post_with_media",
+    # Integration tools
+    "buzzposter_draft_beehiiv",
+    "buzzposter_publish_beehiiv",
+    "buzzposter_draft_kit",
+    "buzzposter_publish_kit",
+    "buzzposter_draft_mailchimp",
+    "buzzposter_publish_mailchimp",
+    "buzzposter_draft_wordpress",
+    "buzzposter_publish_wordpress",
+    "buzzposter_draft_ghost",
+    "buzzposter_publish_ghost",
+    "buzzposter_draft_webflow",
+    "buzzposter_publish_webflow",
+    "buzzposter_connect_platform",
+    "buzzposter_list_integrations",
 ]

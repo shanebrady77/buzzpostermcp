@@ -52,6 +52,20 @@ from .tools import (
     buzzposter_delete_media,
     buzzposter_get_storage_usage,
     buzzposter_post_with_media,
+    buzzposter_draft_beehiiv,
+    buzzposter_publish_beehiiv,
+    buzzposter_draft_kit,
+    buzzposter_publish_kit,
+    buzzposter_draft_mailchimp,
+    buzzposter_publish_mailchimp,
+    buzzposter_draft_wordpress,
+    buzzposter_publish_wordpress,
+    buzzposter_draft_ghost,
+    buzzposter_publish_ghost,
+    buzzposter_draft_webflow,
+    buzzposter_publish_webflow,
+    buzzposter_connect_platform,
+    buzzposter_list_integrations,
 )
 
 
@@ -440,6 +454,186 @@ async def list_tools() -> list[Tool]:
                 "required": ["platform", "content"]
             }
         ),
+        # Newsletter integration tools
+        Tool(
+            name="buzzposter_draft_beehiiv",
+            description="Create a draft newsletter post in Beehiiv. Requires Pro or Business tier with Beehiiv connected.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Post title"},
+                    "content": {"type": "string", "description": "Post content (HTML)"},
+                    "preview_text": {"type": "string", "description": "Optional preview text"}
+                },
+                "required": ["title", "content"]
+            }
+        ),
+        Tool(
+            name="buzzposter_publish_beehiiv",
+            description="Publish a newsletter post to Beehiiv (creates as confirmed). Requires Pro or Business tier with Beehiiv connected.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Post title"},
+                    "content": {"type": "string", "description": "Post content (HTML)"},
+                    "preview_text": {"type": "string", "description": "Optional preview text"}
+                },
+                "required": ["title", "content"]
+            }
+        ),
+        Tool(
+            name="buzzposter_draft_kit",
+            description="Create a draft email broadcast in Kit/ConvertKit. Requires Pro or Business tier with Kit connected.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "subject": {"type": "string", "description": "Email subject"},
+                    "content": {"type": "string", "description": "Email content (HTML)"},
+                    "preview_text": {"type": "string", "description": "Optional preview text"}
+                },
+                "required": ["subject", "content"]
+            }
+        ),
+        Tool(
+            name="buzzposter_publish_kit",
+            description="Create and send an email broadcast in Kit/ConvertKit. Requires Pro or Business tier with Kit connected.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "subject": {"type": "string", "description": "Email subject"},
+                    "content": {"type": "string", "description": "Email content (HTML)"},
+                    "preview_text": {"type": "string", "description": "Optional preview text"}
+                },
+                "required": ["subject", "content"]
+            }
+        ),
+        Tool(
+            name="buzzposter_draft_mailchimp",
+            description="Create a draft email campaign in Mailchimp. Requires Pro or Business tier with Mailchimp connected.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "subject": {"type": "string", "description": "Email subject"},
+                    "content": {"type": "string", "description": "Email content (HTML)"},
+                    "preview_text": {"type": "string", "description": "Optional preview text"}
+                },
+                "required": ["subject", "content"]
+            }
+        ),
+        Tool(
+            name="buzzposter_publish_mailchimp",
+            description="Create and send an email campaign in Mailchimp. Requires Pro or Business tier with Mailchimp connected.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "subject": {"type": "string", "description": "Email subject"},
+                    "content": {"type": "string", "description": "Email content (HTML)"},
+                    "preview_text": {"type": "string", "description": "Optional preview text"}
+                },
+                "required": ["subject", "content"]
+            }
+        ),
+        # CMS integration tools
+        Tool(
+            name="buzzposter_draft_wordpress",
+            description="Create a draft blog post in WordPress. Requires Pro or Business tier with WordPress connected.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Post title"},
+                    "content": {"type": "string", "description": "Post content (HTML)"}
+                },
+                "required": ["title", "content"]
+            }
+        ),
+        Tool(
+            name="buzzposter_publish_wordpress",
+            description="Create and publish a blog post in WordPress. Requires Pro or Business tier with WordPress connected.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Post title"},
+                    "content": {"type": "string", "description": "Post content (HTML)"}
+                },
+                "required": ["title", "content"]
+            }
+        ),
+        Tool(
+            name="buzzposter_draft_ghost",
+            description="Create a draft blog post in Ghost. Requires Pro or Business tier with Ghost connected.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Post title"},
+                    "content": {"type": "string", "description": "Post content (HTML)"}
+                },
+                "required": ["title", "content"]
+            }
+        ),
+        Tool(
+            name="buzzposter_publish_ghost",
+            description="Create and publish a blog post in Ghost. Requires Pro or Business tier with Ghost connected.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Post title"},
+                    "content": {"type": "string", "description": "Post content (HTML)"}
+                },
+                "required": ["title", "content"]
+            }
+        ),
+        Tool(
+            name="buzzposter_draft_webflow",
+            description="Create a draft CMS item in Webflow. Requires Pro or Business tier with Webflow connected.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Item title/name"},
+                    "content": {"type": "string", "description": "Item content (HTML)"}
+                },
+                "required": ["title", "content"]
+            }
+        ),
+        Tool(
+            name="buzzposter_publish_webflow",
+            description="Create and publish a CMS item in Webflow. Requires Pro or Business tier with Webflow connected.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Item title/name"},
+                    "content": {"type": "string", "description": "Item content (HTML)"}
+                },
+                "required": ["title", "content"]
+            }
+        ),
+        # Connection management tools
+        Tool(
+            name="buzzposter_connect_platform",
+            description="Connect a newsletter or CMS platform by providing credentials. Platforms: beehiiv, kit, mailchimp, wordpress, ghost, webflow. Requires Pro or Business tier.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "platform": {
+                        "type": "string",
+                        "description": "Platform name",
+                        "enum": ["beehiiv", "kit", "mailchimp", "wordpress", "ghost", "webflow"]
+                    },
+                    "credentials": {
+                        "type": "object",
+                        "description": "Platform-specific credentials (see docs for required fields per platform)"
+                    }
+                },
+                "required": ["platform", "credentials"]
+            }
+        ),
+        Tool(
+            name="buzzposter_list_integrations",
+            description="List all connected newsletter and CMS platforms.",
+            inputSchema={
+                "type": "object",
+                "properties": {}
+            }
+        ),
     ]
 
 
@@ -473,6 +667,20 @@ async def call_tool(name: str, arguments: dict, request: Request) -> list[TextCo
             "buzzposter_delete_media": lambda: buzzposter_delete_media(user_ctx, **arguments),
             "buzzposter_get_storage_usage": lambda: buzzposter_get_storage_usage(user_ctx),
             "buzzposter_post_with_media": lambda: buzzposter_post_with_media(user_ctx, **arguments),
+            "buzzposter_draft_beehiiv": lambda: buzzposter_draft_beehiiv(user_ctx, **arguments),
+            "buzzposter_publish_beehiiv": lambda: buzzposter_publish_beehiiv(user_ctx, **arguments),
+            "buzzposter_draft_kit": lambda: buzzposter_draft_kit(user_ctx, **arguments),
+            "buzzposter_publish_kit": lambda: buzzposter_publish_kit(user_ctx, **arguments),
+            "buzzposter_draft_mailchimp": lambda: buzzposter_draft_mailchimp(user_ctx, **arguments),
+            "buzzposter_publish_mailchimp": lambda: buzzposter_publish_mailchimp(user_ctx, **arguments),
+            "buzzposter_draft_wordpress": lambda: buzzposter_draft_wordpress(user_ctx, **arguments),
+            "buzzposter_publish_wordpress": lambda: buzzposter_publish_wordpress(user_ctx, **arguments),
+            "buzzposter_draft_ghost": lambda: buzzposter_draft_ghost(user_ctx, **arguments),
+            "buzzposter_publish_ghost": lambda: buzzposter_publish_ghost(user_ctx, **arguments),
+            "buzzposter_draft_webflow": lambda: buzzposter_draft_webflow(user_ctx, **arguments),
+            "buzzposter_publish_webflow": lambda: buzzposter_publish_webflow(user_ctx, **arguments),
+            "buzzposter_connect_platform": lambda: buzzposter_connect_platform(user_ctx, **arguments),
+            "buzzposter_list_integrations": lambda: buzzposter_list_integrations(user_ctx),
         }
 
         handler = tool_map.get(name)
