@@ -504,7 +504,7 @@ async def onboarding(
         social_accounts_html = "<p>Not connected. Click the button below to connect your social accounts.</p>"
 
     base_url = os.getenv("BASE_URL", "http://localhost:8000")
-    config_snippet = f'''{{{
+    config_snippet = f'''{{
     "mcpServers": {{
         "buzzposter": {{
             "type": "url",
@@ -745,6 +745,11 @@ async def billing(
     if canceled:
         cancel_message = '<div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">Payment canceled. You can upgrade anytime.</div>'
 
+    # Prepare button HTML for each tier
+    free_button = '<button class="button" disabled>Current Plan</button>'
+    pro_button = '<button class="button" disabled>Current Plan</button>' if current_tier == 'pro' else '<button class="button" onclick="upgradeTo(\'pro\')">Upgrade to Pro</button>'
+    business_button = '<button class="button" disabled>Current Plan</button>' if current_tier == 'business' else '<button class="button" onclick="upgradeTo(\'business\')">Upgrade to Business</button>'
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -845,7 +850,7 @@ async def billing(
                     <li>Basic RSS feeds</li>
                     <li>No social posting</li>
                 </ul>
-                <button class="button" disabled>Current Plan</button>
+                {free_button}
             </div>
 
             <div class="plan {'current' if current_tier == 'pro' else ''}">
@@ -860,7 +865,7 @@ async def billing(
                     <li>Post scheduling</li>
                     <li>Analytics</li>
                 </ul>
-                {'<button class="button" disabled>Current Plan</button>' if current_tier == 'pro' else '<button class="button" onclick="upgradeTo(\'pro\')">Upgrade to Pro</button>'}
+                {pro_button}
             </div>
 
             <div class="plan {'current' if current_tier == 'business' else ''}">
@@ -873,7 +878,7 @@ async def billing(
                     <li>Advanced analytics</li>
                     <li>Team features (soon)</li>
                 </ul>
-                {'<button class="button" disabled>Current Plan</button>' if current_tier == 'business' else '<button class="button" onclick="upgradeTo(\'business\')">Upgrade to Business</button>'}
+                {business_button}
             </div>
         </div>
 
