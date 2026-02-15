@@ -25,6 +25,7 @@ class User(Base):
     usage_logs = relationship("UsageLog", back_populates="user", cascade="all, delete-orphan")
     user_feeds = relationship("UserFeed", back_populates="user", cascade="all, delete-orphan")
     user_profile = relationship("UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    media_files = relationship("Media", back_populates="user", cascade="all, delete-orphan")
 
 
 class UsageLog(Base):
@@ -74,3 +75,25 @@ class UserProfile(Base):
 
     # Relationship
     user = relationship("User", back_populates="user_profile")
+
+
+class Media(Base):
+    __tablename__ = "media"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    filename = Column(String(255), nullable=False)
+    r2_key = Column(String(512), nullable=False, unique=True)  # Storage path in R2
+    url = Column(Text, nullable=False)  # Public URL
+    content_type = Column(String(100), nullable=False)
+    size_bytes = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # Relationship
+    user = relationship("User", back_populates="media_files")
+
+    # Indexes for efficient queries
+    __table_args__ = (
+        Index('idx_user_media', 'user_id'),
+        Index('idx_r2_key', 'r2_key'),
+    )

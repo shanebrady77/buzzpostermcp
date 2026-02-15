@@ -21,6 +21,13 @@ from .social import (
     buzzposter_list_posts,
     buzzposter_post_analytics,
 )
+from .media import (
+    buzzposter_upload_media,
+    buzzposter_list_media,
+    buzzposter_delete_media,
+    buzzposter_get_storage_usage,
+    buzzposter_post_with_media,
+)
 
 __all__ = [
     # Feed tools
@@ -40,4 +47,10 @@ __all__ = [
     "buzzposter_schedule_post",
     "buzzposter_list_posts",
     "buzzposter_post_analytics",
+    # Media tools
+    "buzzposter_upload_media",
+    "buzzposter_list_media",
+    "buzzposter_delete_media",
+    "buzzposter_get_storage_usage",
+    "buzzposter_post_with_media",
 ]

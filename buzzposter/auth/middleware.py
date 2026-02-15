@@ -93,6 +93,7 @@ async def check_feature_access(user_context: UserContext, feature: str) -> None:
         "custom_feeds": ["pro", "business"],
         "social_posting": ["pro", "business"],
         "unlimited_topics": ["pro", "business"],
+        "media_upload": ["pro", "business"],
     }
 
     allowed_tiers = access_matrix.get(feature, [])
