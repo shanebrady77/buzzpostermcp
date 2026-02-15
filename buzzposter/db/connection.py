@@ -2,18 +2,26 @@
 Database connection and session management
 """
 import os
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.pool import NullPool
 from .models import Base
 
-# Get database URL from environment
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Convert postgres:// to postgresql+asyncpg:// if needed (Railway uses postgres://)
-if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
-elif DATABASE_URL and not DATABASE_URL.startswith("postgresql+asyncpg://"):
-    DATABASE_URL = f"postgresql+asyncpg://{DATABASE_URL}"
+if DATABASE_URL:
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif DATABASE_URL.startswith("postgresql://"):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+    elif not DATABASE_URL.startswith("postgresql+asyncpg://"):
+        DATABASE_URL = f"postgresql+asyncpg://{DATABASE_URL}"
+
+    parsed = urlparse(DATABASE_URL)
+    params = parse_qs(parsed.query)
+    params.pop("sslmode", None)
+    cleaned_query = urlencode(params, doseq=True)
+    DATABASE_URL = urlunparse(parsed._replace(query=cleaned_query))
 
 # Create async engine
 engine = create_async_engine(

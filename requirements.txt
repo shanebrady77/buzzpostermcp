@@ -29,3 +29,4 @@ PyJWT==2.8.0
 
 # Environment Variables
 python-dotenv==1.0.1
+beautifulsoup4

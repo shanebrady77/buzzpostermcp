@@ -109,7 +109,7 @@ class UserIntegration(Base):
     platform = Column(String(50), nullable=False)  # beehiiv, kit, mailchimp, wordpress, ghost, webflow
     access_token = Column(Text, nullable=True)
     refresh_token = Column(Text, nullable=True)
-    metadata = Column(JSON, nullable=True)  # Platform-specific data (pub_id, list_id, site_url, etc.)
+    integration_metadata = Column("metadata", JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 

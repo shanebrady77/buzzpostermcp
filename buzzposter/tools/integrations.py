@@ -59,7 +59,7 @@ async def buzzposter_draft_beehiiv(
     if not integration:
         return {"error": "Beehiiv not connected. Use buzzposter_connect_platform first."}
 
-    pub_id = integration.metadata.get("publication_id") if integration.metadata else None
+    pub_id = integration.integration_metadata.get("publication_id") if integration.integration_metadata else None
     if not pub_id:
         return {"error": "Beehiiv publication ID not configured"}
 
@@ -118,7 +118,7 @@ async def buzzposter_publish_beehiiv(
     if not integration:
         return {"error": "Beehiiv not connected. Use buzzposter_connect_platform first."}
 
-    pub_id = integration.metadata.get("publication_id") if integration.metadata else None
+    pub_id = integration.integration_metadata.get("publication_id") if integration.integration_metadata else None
     if not pub_id:
         return {"error": "Beehiiv publication ID not configured"}
 
@@ -293,7 +293,7 @@ async def buzzposter_draft_mailchimp(
     if not integration:
         return {"error": "Mailchimp not connected. Use buzzposter_connect_platform first."}
 
-    list_id = integration.metadata.get("list_id") if integration.metadata else None
+    list_id = integration.integration_metadata.get("list_id") if integration.integration_metadata else None
     if not list_id:
         return {"error": "Mailchimp list ID not configured"}
 
@@ -314,8 +314,8 @@ async def buzzposter_draft_mailchimp(
                     "settings": {
                         "subject_line": subject,
                         "preview_text": preview_text or subject[:100],
-                        "from_name": integration.metadata.get("from_name", "Newsletter"),
-                        "reply_to": integration.metadata.get("reply_to", "noreply@example.com")
+                        "from_name": integration.integration_metadata.get("from_name", "Newsletter"),
+                        "reply_to": integration.integration_metadata.get("reply_to", "noreply@example.com")
                     }
                 }
             )
@@ -427,8 +427,8 @@ async def buzzposter_draft_wordpress(
     if not integration:
         return {"error": "WordPress not connected. Use buzzposter_connect_platform first."}
 
-    site_url = integration.metadata.get("site_url") if integration.metadata else None
-    username = integration.metadata.get("username") if integration.metadata else None
+    site_url = integration.integration_metadata.get("site_url") if integration.integration_metadata else None
+    username = integration.integration_metadata.get("username") if integration.integration_metadata else None
 
     if not site_url or not username:
         return {"error": "WordPress site URL or username not configured"}
@@ -488,8 +488,8 @@ async def buzzposter_publish_wordpress(
     if not integration:
         return {"error": "WordPress not connected. Use buzzposter_connect_platform first."}
 
-    site_url = integration.metadata.get("site_url") if integration.metadata else None
-    username = integration.metadata.get("username") if integration.metadata else None
+    site_url = integration.integration_metadata.get("site_url") if integration.integration_metadata else None
+    username = integration.integration_metadata.get("username") if integration.integration_metadata else None
 
     if not site_url or not username:
         return {"error": "WordPress site URL or username not configured"}
@@ -572,7 +572,7 @@ async def buzzposter_draft_ghost(
     if not integration:
         return {"error": "Ghost not connected. Use buzzposter_connect_platform first."}
 
-    site_url = integration.metadata.get("site_url") if integration.metadata else None
+    site_url = integration.integration_metadata.get("site_url") if integration.integration_metadata else None
     if not site_url:
         return {"error": "Ghost site URL not configured"}
 
@@ -633,7 +633,7 @@ async def buzzposter_publish_ghost(
     if not integration:
         return {"error": "Ghost not connected. Use buzzposter_connect_platform first."}
 
-    site_url = integration.metadata.get("site_url") if integration.metadata else None
+    site_url = integration.integration_metadata.get("site_url") if integration.integration_metadata else None
     if not site_url:
         return {"error": "Ghost site URL not configured"}
 
@@ -698,7 +698,7 @@ async def buzzposter_draft_webflow(
     if not integration:
         return {"error": "Webflow not connected. Use buzzposter_connect_platform first."}
 
-    collection_id = integration.metadata.get("collection_id") if integration.metadata else None
+    collection_id = integration.integration_metadata.get("collection_id") if integration.integration_metadata else None
     if not collection_id:
         return {"error": "Webflow collection ID not configured"}
 
@@ -757,7 +757,7 @@ async def buzzposter_publish_webflow(
     if not integration:
         return {"error": "Webflow not connected. Use buzzposter_connect_platform first."}
 
-    collection_id = integration.metadata.get("collection_id") if integration.metadata else None
+    collection_id = integration.integration_metadata.get("collection_id") if integration.integration_metadata else None
     if not collection_id:
         return {"error": "Webflow collection ID not configured"}
 
@@ -852,7 +852,7 @@ async def buzzposter_connect_platform(
         if existing:
             # Update existing integration
             existing.access_token = access_token
-            existing.metadata = metadata
+            existing.integration_metadata = metadata
             existing.updated_at = datetime.utcnow()
         else:
             # Create new integration
@@ -902,7 +902,7 @@ async def buzzposter_list_integrations(user_ctx: UserContext) -> Dict[str, Any]:
                 {
                     "platform": i.platform,
                     "connected_at": i.created_at.isoformat(),
-                    "metadata": i.metadata
+                    "metadata": i.integration_metadata
                 }
                 for i in integrations
             ],

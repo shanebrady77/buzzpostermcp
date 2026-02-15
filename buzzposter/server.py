@@ -1100,96 +1100,110 @@ async def onboarding(
     if upgraded:
         upgrade_message = '<div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px;">✅ Successfully upgraded! Your new features are now active.</div>'
 
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>BuzzPoster - Onboarding</title>
-        <style>
-            body {{
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                max-width: 800px;
-                margin: 50px auto;
-                padding: 20px;
-                line-height: 1.6;
-            }}
-            h1 {{ color: #333; }}
-            h2 {{ color: #666; margin-top: 30px; }}
-            .api-key {{
-                background: #f5f5f5;
-                padding: 15px;
-                border-radius: 5px;
-                font-family: monospace;
-                word-break: break-all;
-                margin: 15px 0;
-            }}
-            pre {{
-                background: #f5f5f5;
-                padding: 15px;
-                border-radius: 5px;
-                overflow-x: auto;
-            }}
-            .button {{
-                display: inline-block;
-                background: #007bff;
-                color: white;
-                padding: 12px 24px;
-                text-decoration: none;
-                border-radius: 5px;
-                margin: 10px 10px 10px 0;
-            }}
-            .button:hover {{ background: #0056b3; }}
-            .tier {{
-                background: #e7f3ff;
-                padding: 10px;
-                border-radius: 5px;
-                display: inline-block;
-                font-weight: bold;
-            }}
-            .status {{
-                margin: 20px 0;
-                padding: 15px;
-                background: #f8f9fa;
-                border-radius: 5px;
-            }}
-        </style>
-    </head>
-    <body>
-        <h1>🎉 Welcome to BuzzPoster!</h1>
-        {upgrade_message}
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>BuzzPoster - Dashboard</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #0a0a0a; color: #e5e5e5; min-height: 100vh; line-height: 1.6;
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }}
+        .container {{ max-width: 720px; margin: 0 auto; padding: 48px 24px; }}
+        h1 {{
+            font-size: 2.4rem; font-weight: 700; margin-bottom: 32px;
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }}
+        h2 {{ color: #a78bfa; font-size: 1.2rem; margin: 32px 0 12px; }}
+        .success-banner {{
+            background: rgba(34,197,94,0.15); color: #86efac; padding: 14px 18px;
+            border-radius: 10px; border: 1px solid rgba(34,197,94,0.3); margin-bottom: 24px;
+        }}
+        .section {{
+            background: #111; border: 1px solid #222; border-radius: 12px; padding: 24px; margin-bottom: 20px;
+        }}
+        .section p {{ color: #a3a3a3; }}
+        .section strong {{ color: #fff; }}
+        .tier-badge {{
+            background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff;
+            padding: 4px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+        }}
+        .api-key-box {{
+            background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 14px;
+            font-family: monospace; word-break: break-all; color: #a78bfa; margin: 12px 0;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        }}
+        .api-key-box span {{ flex: 1; }}
+        .copy-btn {{
+            background: #222; border: 1px solid #333; color: #a3a3a3; padding: 6px 14px;
+            border-radius: 6px; cursor: pointer; font-size: 0.85rem; white-space: nowrap;
+        }}
+        .copy-btn:hover {{ background: #333; color: #fff; }}
+        pre {{
+            background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 16px;
+            overflow-x: auto; color: #a78bfa; font-size: 0.85rem; line-height: 1.5;
+        }}
+        .btn {{
+            display: inline-block; padding: 12px 24px; border-radius: 8px; font-weight: 600;
+            text-decoration: none; font-size: 0.95rem; cursor: pointer; border: none; transition: opacity 0.3s;
+        }}
+        .btn-primary {{ background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; }}
+        .btn-secondary {{ background: #222; border: 1px solid #333; color: #e5e5e5; }}
+        .btn:hover {{ opacity: 0.85; }}
+        ol {{ padding-left: 20px; color: #a3a3a3; }}
+        ol li {{ margin: 8px 0; }}
+        .status-list {{ list-style: none; padding: 0; }}
+        .status-list li {{ margin: 6px 0; color: #a3a3a3; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to BuzzPoster</h1>
+        {"<div class='success-banner'>Successfully upgraded! Your new features are now active.</div>" if upgraded else ""}
 
-        <h2>📊 Your Account</h2>
-        <p><strong>Email:</strong> {user_ctx.user.email}</p>
-        <p><strong>Tier:</strong> <span class="tier">{user_ctx.tier.upper()}</span></p>
+        <div class="section">
+            <p><strong>Email:</strong> {user_ctx.user.email}</p>
+            <p style="margin-top:8px;"><strong>Tier:</strong> <span class="tier-badge">{user_ctx.tier.upper()}</span></p>
+        </div>
 
-        <h2>🔑 Your API Key</h2>
-        <p>Keep this secret! You'll need it to configure Claude Desktop.</p>
-        <div class="api-key">{api_key}</div>
+        <h2>Your API Key</h2>
+        <p style="color:#737373;margin-bottom:8px;">Keep this secret. You need it for Claude Desktop.</p>
+        <div class="api-key-box">
+            <span id="key-text">{api_key}</span>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('key-text').textContent);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)">Copy</button>
+        </div>
 
-        <h2>🔗 Connect Social Accounts</h2>
-        <div class="status">
-            <strong>Connection Status:</strong><br>
+        <h2>Connect Social Accounts</h2>
+        <div class="section">
             {social_accounts_html}
         </div>
-        <a href="/auth/late/connect?api_key={api_key}" class="button">Connect Social Accounts</a>
+        <a href="/auth/late/connect?api_key={api_key}" class="btn btn-primary" style="margin-bottom:12px;">Connect Social Accounts</a>
 
-        <h2>⚙️ Claude Desktop Configuration</h2>
-        <p>Add this to your Claude Desktop configuration file:</p>
+        <h2>Claude Desktop Configuration</h2>
+        <p style="color:#737373;margin-bottom:12px;">Add this to your Claude Desktop config file:</p>
         <pre>{config_snippet}</pre>
 
-        <h2>🚀 Next Steps</h2>
+        <h2>Next Steps</h2>
         <ol>
             <li>Connect your social accounts using the button above</li>
-            <li>Copy the configuration above to your Claude Desktop config</li>
+            <li>Copy the configuration to your Claude Desktop config</li>
             <li>Restart Claude Desktop</li>
             <li>Start using BuzzPoster tools in your conversations!</li>
         </ol>
 
-        <h2>💰 Upgrade Your Plan</h2>
-        <a href="/billing?api_key={api_key}" class="button">View Billing & Upgrade</a>
-    </body>
-    </html>
-    """
+        <div style="margin-top:32px;">
+            <a href="/billing?api_key={api_key}" class="btn btn-secondary">View Billing &amp; Upgrade</a>
+        </div>
+    </div>
+</body>
+</html>"""
 
     return HTMLResponse(content=html_content)
 
@@ -1330,95 +1344,74 @@ async def billing(
     pro_button = '<button class="button" disabled>Current Plan</button>' if current_tier == 'pro' else '<button class="button" onclick="upgradeTo(\'pro\')">Upgrade to Pro</button>'
     business_button = '<button class="button" disabled>Current Plan</button>' if current_tier == 'business' else '<button class="button" onclick="upgradeTo(\'business\')">Upgrade to Business</button>'
 
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>BuzzPoster - Billing</title>
-        <style>
-            body {{
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                max-width: 900px;
-                margin: 50px auto;
-                padding: 20px;
-            }}
-            h1 {{ color: #333; }}
-            .current-tier {{
-                background: #e7f3ff;
-                padding: 20px;
-                border-radius: 10px;
-                margin: 20px 0;
-            }}
-            .plans {{
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 20px;
-                margin: 30px 0;
-            }}
-            .plan {{
-                border: 2px solid #ddd;
-                border-radius: 10px;
-                padding: 20px;
-                text-align: center;
-            }}
-            .plan.current {{
-                border-color: #007bff;
-                background: #f0f7ff;
-            }}
-            .plan h3 {{
-                margin-top: 0;
-                color: #333;
-            }}
-            .price {{
-                font-size: 2em;
-                font-weight: bold;
-                color: #007bff;
-                margin: 15px 0;
-            }}
-            .features {{
-                list-style: none;
-                padding: 0;
-                margin: 20px 0;
-                text-align: left;
-            }}
-            .features li {{
-                margin: 8px 0;
-                padding-left: 25px;
-                position: relative;
-            }}
-            .features li:before {{
-                content: "✓";
-                position: absolute;
-                left: 0;
-                color: #28a745;
-                font-weight: bold;
-            }}
-            .button {{
-                display: inline-block;
-                background: #007bff;
-                color: white;
-                padding: 12px 24px;
-                text-decoration: none;
-                border-radius: 5px;
-                border: none;
-                cursor: pointer;
-                font-size: 16px;
-            }}
-            .button:hover {{ background: #0056b3; }}
-            .button:disabled {{
-                background: #ccc;
-                cursor: not-allowed;
-            }}
-        </style>
-    </head>
-    <body>
-        <h1>💰 Billing & Plans</h1>
-        {cancel_message}
+    free_btn_class = "btn-current" if current_tier == "free" else "btn-primary"
+    pro_btn_class = "btn-current" if current_tier == "pro" else "btn-primary"
+    biz_btn_class = "btn-current" if current_tier == "business" else "btn-primary"
 
-        <div class="current-tier">
-            <h2>Current Plan: {current_tier.upper()}</h2>
-            <p>Email: {user_ctx.user.email}</p>
-        </div>
+    pro_btn_html = '<button class="plan-btn btn-current" disabled>Current Plan</button>' if current_tier == "pro" else """<button class="plan-btn btn-primary" onclick="upgradeTo('pro')">Upgrade to Pro</button>"""
+    biz_btn_html = '<button class="plan-btn btn-current" disabled>Current Plan</button>' if current_tier == "business" else """<button class="plan-btn btn-primary" onclick="upgradeTo('business')">Upgrade to Business</button>"""
+    free_btn_html = '<button class="plan-btn btn-current" disabled>Current Plan</button>' if current_tier == "free" else '<button class="plan-btn btn-primary" disabled>Free</button>'
+
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>BuzzPoster - Billing</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #0a0a0a; color: #e5e5e5; min-height: 100vh; line-height: 1.6;
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }}
+        .container {{ max-width: 900px; margin: 0 auto; padding: 48px 24px; }}
+        h1 {{
+            font-size: 2.4rem; font-weight: 700; text-align: center; margin-bottom: 12px;
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }}
+        .subtitle {{ text-align: center; color: #a3a3a3; margin-bottom: 40px; }}
+        .cancel-banner {{
+            background: rgba(234,179,8,0.15); color: #fde047; padding: 14px 18px;
+            border-radius: 10px; border: 1px solid rgba(234,179,8,0.3); margin-bottom: 24px; text-align: center;
+        }}
+        .plans {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }}
+        @media (max-width: 700px) {{ .plans {{ grid-template-columns: 1fr; }} }}
+        .plan {{
+            background: #111; border: 1px solid #222; border-radius: 12px; padding: 28px;
+            text-align: center; transition: border-color 0.3s, box-shadow 0.3s;
+        }}
+        .plan.current {{ border-color: #7c3aed; box-shadow: 0 0 24px rgba(124,58,237,0.2); }}
+        .plan h3 {{ color: #fff; font-size: 1.3rem; margin-bottom: 8px; }}
+        .price {{
+            font-size: 2.5rem; font-weight: 700;
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin: 16px 0;
+        }}
+        .price span {{ font-size: 1rem; -webkit-text-fill-color: #737373; }}
+        .features {{ list-style: none; padding: 0; margin: 20px 0; text-align: left; }}
+        .features li {{ margin: 10px 0; padding-left: 24px; position: relative; color: #a3a3a3; font-size: 0.9rem; }}
+        .features li:before {{ content: "\\2713"; position: absolute; left: 0; color: #7c3aed; font-weight: bold; }}
+        .plan-btn {{
+            display: inline-block; width: 100%; padding: 12px; border-radius: 8px; font-weight: 600;
+            font-size: 0.95rem; cursor: pointer; border: none; transition: opacity 0.3s; margin-top: 8px;
+        }}
+        .btn-primary {{ background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; }}
+        .btn-primary:hover {{ opacity: 0.85; }}
+        .btn-current {{ background: #222; color: #737373; cursor: default; }}
+        .back-link {{ display: block; text-align: center; color: #7c3aed; text-decoration: none; margin-top: 20px; }}
+        .back-link:hover {{ text-decoration: underline; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Billing &amp; Plans</h1>
+        <p class="subtitle">Current plan: <strong style="color:#a78bfa;">{current_tier.upper()}</strong> &middot; {user_ctx.user.email}</p>
+        {"<div class='cancel-banner'>Payment canceled. You can upgrade anytime.</div>" if canceled else ""}
 
         <div class="plans">
             <div class="plan {'current' if current_tier == 'free' else ''}">
@@ -1430,12 +1423,11 @@ async def billing(
                     <li>Basic RSS feeds</li>
                     <li>No social posting</li>
                 </ul>
-                {free_button}
+                {free_btn_html}
             </div>
-
             <div class="plan {'current' if current_tier == 'pro' else ''}">
                 <h3>Pro</h3>
-                <div class="price">$49<span style="font-size: 0.5em;">/month</span></div>
+                <div class="price">$49<span>/mo</span></div>
                 <ul class="features">
                     <li>500 tool calls/day</li>
                     <li>Unlimited topics</li>
@@ -1445,12 +1437,11 @@ async def billing(
                     <li>Post scheduling</li>
                     <li>Analytics</li>
                 </ul>
-                {pro_button}
+                {pro_btn_html}
             </div>
-
             <div class="plan {'current' if current_tier == 'business' else ''}">
                 <h3>Business</h3>
-                <div class="price">$149<span style="font-size: 0.5em;">/month</span></div>
+                <div class="price">$149<span>/mo</span></div>
                 <ul class="features">
                     <li>Unlimited tool calls</li>
                     <li>Everything in Pro</li>
@@ -1458,37 +1449,29 @@ async def billing(
                     <li>Advanced analytics</li>
                     <li>Team features (soon)</li>
                 </ul>
-                {business_button}
+                {biz_btn_html}
             </div>
         </div>
 
-        <p style="text-align: center; margin-top: 30px;">
-            <a href="/onboarding?api_key={api_key}">← Back to Dashboard</a>
-        </p>
-
-        <script>
-            async function upgradeTo(tier) {{
-                try {{
-                    const response = await fetch('/checkout', {{
-                        method: 'POST',
-                        headers: {{ 'Content-Type': 'application/json' }},
-                        body: JSON.stringify({{
-                            api_key: '{api_key}',
-                            tier: tier
-                        }})
-                    }});
-                    const data = await response.json();
-                    if (data.checkout_url) {{
-                        window.location.href = data.checkout_url;
-                    }}
-                }} catch (error) {{
-                    alert('Error creating checkout session. Please try again.');
-                }}
+        <a href="/onboarding?api_key={api_key}" class="back-link">&larr; Back to Dashboard</a>
+    </div>
+    <script>
+        async function upgradeTo(tier) {{
+            try {{
+                const res = await fetch('/checkout', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{ api_key: '{api_key}', tier: tier }})
+                }});
+                const data = await res.json();
+                if (data.checkout_url) window.location.href = data.checkout_url;
+            }} catch (e) {{
+                alert('Error creating checkout session. Please try again.');
             }}
-        </script>
-    </body>
-    </html>
-    """
+        }}
+    </script>
+</body>
+</html>"""
 
     return HTMLResponse(content=html_content)
 
@@ -1497,9 +1480,8 @@ async def billing(
 # HEALTH CHECK
 # =============================================================================
 
-@app.get("/")
-async def root():
-    """Root endpoint - health check"""
+@app.get("/api/info")
+async def api_info():
     return {
         "name": "BuzzPoster MCP Server",
         "version": "1.0.0",
@@ -1516,8 +1498,166 @@ async def root():
 
 @app.get("/health")
 async def health():
-    """Health check endpoint"""
     return {"status": "healthy"}
+
+
+@app.get("/", response_class=HTMLResponse)
+async def landing_page():
+    base_url = os.getenv("BASE_URL", "http://localhost:5000")
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>BuzzPoster</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #0a0a0a;
+            color: #e5e5e5;
+            min-height: 100vh;
+            line-height: 1.6;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }}
+        .container {{ max-width: 720px; margin: 0 auto; padding: 60px 24px; }}
+        h1 {{
+            font-size: 3rem; font-weight: 700; text-align: center;
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: glow 3s ease-in-out infinite alternate;
+        }}
+        @keyframes glow {{
+            from {{ filter: drop-shadow(0 0 8px rgba(124,58,237,0.4)); }}
+            to {{ filter: drop-shadow(0 0 20px rgba(124,58,237,0.7)); }}
+        }}
+        .subtitle {{ text-align: center; color: #a3a3a3; margin: 12px 0 48px; font-size: 1.1rem; }}
+        .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 48px; }}
+        @media (max-width: 600px) {{ .grid {{ grid-template-columns: 1fr; }} }}
+        .card {{
+            background: #111; border: 1px solid #222; border-radius: 12px; padding: 28px;
+            transition: border-color 0.3s, box-shadow 0.3s; text-align: center;
+        }}
+        .card:hover {{ border-color: #7c3aed; box-shadow: 0 0 20px rgba(124,58,237,0.15); }}
+        .card-icon {{ font-size: 2rem; margin-bottom: 12px; }}
+        .card h3 {{ color: #fff; margin-bottom: 8px; }}
+        .card p {{ color: #737373; font-size: 0.9rem; }}
+        .auth-box {{
+            background: #111; border: 1px solid #222; border-radius: 12px; padding: 32px;
+            max-width: 480px; margin: 0 auto;
+        }}
+        .tabs {{ display: flex; border-bottom: 1px solid #333; margin-bottom: 24px; }}
+        .tab {{
+            flex: 1; padding: 12px; text-align: center; cursor: pointer;
+            color: #737373; border-bottom: 2px solid transparent; transition: all 0.3s;
+            background: none; border-top: none; border-left: none; border-right: none;
+            font-size: 1rem;
+        }}
+        .tab.active {{ color: #7c3aed; border-bottom-color: #7c3aed; }}
+        .tab-content {{ display: none; }}
+        .tab-content.active {{ display: block; }}
+        label {{ display: block; color: #a3a3a3; margin-bottom: 6px; font-size: 0.9rem; }}
+        input[type="email"] {{
+            width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid #333;
+            border-radius: 8px; color: #fff; font-size: 1rem; margin-bottom: 16px;
+            outline: none; transition: border-color 0.3s;
+        }}
+        input[type="email"]:focus {{ border-color: #7c3aed; }}
+        .btn {{
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff;
+            transition: opacity 0.3s;
+        }}
+        .btn:hover {{ opacity: 0.9; }}
+        .btn:disabled {{ opacity: 0.5; cursor: not-allowed; }}
+        .helper {{ text-align: center; color: #525252; font-size: 0.85rem; margin-top: 12px; }}
+        .msg {{ padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; display: none; }}
+        .msg.error {{ display: block; background: rgba(220,38,38,0.15); color: #fca5a5; border: 1px solid rgba(220,38,38,0.3); }}
+        .msg.success {{ display: block; background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BuzzPoster</h1>
+        <p class="subtitle">MCP Server for Content Sourcing &amp; Social Media Posting</p>
+        <div class="grid">
+            <div class="card"><div class="card-icon">📡</div><h3>RSS Feeds</h3><p>Fetch and manage RSS feeds from any source. Built-in topics for tech, business, and science.</p></div>
+            <div class="card"><div class="card-icon">🔍</div><h3>News Search</h3><p>Search the latest news with NewsAPI integration. Filter by topic, language, and relevance.</p></div>
+            <div class="card"><div class="card-icon">📮</div><h3>Social Posting</h3><p>Post to Twitter, LinkedIn, Facebook and more. Schedule and cross-post to multiple platforms.</p></div>
+            <div class="card"><div class="card-icon">📊</div><h3>Analytics</h3><p>Track engagement metrics like likes, shares, and comments across all your posts.</p></div>
+        </div>
+        <div class="auth-box">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('signup')">Sign Up</button>
+                <button class="tab" onclick="switchTab('signin')">Sign In</button>
+            </div>
+            <div id="signup-tab" class="tab-content active">
+                <p class="helper" style="margin-bottom:16px;">Create a free account to get your API key</p>
+                <div id="signup-msg" class="msg"></div>
+                <label for="signup-email">Email address</label>
+                <input type="email" id="signup-email" placeholder="you@example.com">
+                <button class="btn" id="signup-btn" onclick="doSignup()">Create Account</button>
+            </div>
+            <div id="signin-tab" class="tab-content">
+                <p class="helper" style="margin-bottom:16px;">Sign in to retrieve your API key</p>
+                <div id="signin-msg" class="msg"></div>
+                <label for="signin-email">Email address</label>
+                <input type="email" id="signin-email" placeholder="you@example.com">
+                <button class="btn" id="signin-btn" onclick="doSignin()">Sign In</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function switchTab(tab) {{
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            if (tab === 'signup') {{
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('signup-tab').classList.add('active');
+            }} else {{
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('signin-tab').classList.add('active');
+            }}
+        }}
+        async function doSignup() {{
+            const email = document.getElementById('signup-email').value.trim();
+            const msg = document.getElementById('signup-msg');
+            const btn = document.getElementById('signup-btn');
+            if (!email) {{ msg.className = 'msg error'; msg.textContent = 'Please enter your email.'; return; }}
+            btn.disabled = true; btn.textContent = 'Creating...';
+            try {{
+                const res = await fetch('/signup', {{ method: 'POST', headers: {{'Content-Type': 'application/json'}}, body: JSON.stringify({{email}}) }});
+                const data = await res.json();
+                if (res.ok) {{ window.location.href = '/onboarding?api_key=' + encodeURIComponent(data.api_key); }}
+                else {{ msg.className = 'msg error'; msg.textContent = data.detail || 'Signup failed'; }}
+            }} catch(e) {{ msg.className = 'msg error'; msg.textContent = 'Network error'; }}
+            btn.disabled = false; btn.textContent = 'Create Account';
+        }}
+        async function doSignin() {{
+            const email = document.getElementById('signin-email').value.trim();
+            const msg = document.getElementById('signin-msg');
+            const btn = document.getElementById('signin-btn');
+            if (!email) {{ msg.className = 'msg error'; msg.textContent = 'Please enter your email.'; return; }}
+            btn.disabled = true; btn.textContent = 'Signing in...';
+            try {{
+                const res = await fetch('/login', {{ method: 'POST', headers: {{'Content-Type': 'application/json'}}, body: JSON.stringify({{email}}) }});
+                const data = await res.json();
+                if (res.ok) {{ window.location.href = '/onboarding?api_key=' + encodeURIComponent(data.api_key); }}
+                else {{ msg.className = 'msg error'; msg.textContent = data.detail || 'Account not found'; }}
+            }} catch(e) {{ msg.className = 'msg error'; msg.textContent = 'Network error'; }}
+            btn.disabled = false; btn.textContent = 'Sign In';
+        }}
+        document.getElementById('signup-email').addEventListener('keydown', e => {{ if (e.key === 'Enter') doSignup(); }});
+        document.getElementById('signin-email').addEventListener('keydown', e => {{ if (e.key === 'Enter') doSignin(); }});
+    </script>
+</body>
+</html>"""
+    return HTMLResponse(content=html)
 
 
 # =============================================================================
@@ -1526,5 +1666,5 @@ async def health():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", "8000"))
+    port = int(os.getenv("PORT", "5000"))
     uvicorn.run("buzzposter.server:app", host="0.0.0.0", port=port, reload=False)
