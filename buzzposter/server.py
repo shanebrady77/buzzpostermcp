@@ -1043,6 +1043,27 @@ async def signup(request: Request, db: AsyncSession = Depends(get_db)):
     }
 
 
+@app.post("/login")
+async def login(request: Request, db: AsyncSession = Depends(get_db)):
+    body = await request.json()
+    email = body.get("email")
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Email required")
+
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="No account found with that email")
+
+    return {
+        "api_key": user.buzzposter_api_key,
+        "tier": user.tier,
+        "email": user.email,
+    }
+
+
 @app.get("/onboarding", response_class=HTMLResponse)
 async def onboarding(
     api_key: str = Query(..., description="BuzzPoster API key"),
