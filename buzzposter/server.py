@@ -66,6 +66,25 @@ from .tools import (
     buzzposter_publish_webflow,
     buzzposter_connect_platform,
     buzzposter_list_integrations,
+    buzzposter_connect_shopify,
+    buzzposter_shopify_products,
+    buzzposter_shopify_collections,
+    buzzposter_shopify_bestsellers,
+    buzzposter_connect_woocommerce,
+    buzzposter_woo_products,
+    buzzposter_woo_categories,
+    buzzposter_woo_reviews,
+    buzzposter_woo_bestsellers,
+    buzzposter_connect_etsy,
+    buzzposter_etsy_listings,
+    buzzposter_etsy_listing_images,
+    buzzposter_etsy_shop_reviews,
+    buzzposter_etsy_shop_sections,
+    buzzposter_get_products,
+    buzzposter_get_bestsellers,
+    buzzposter_get_reviews,
+    buzzposter_get_on_sale,
+    buzzposter_get_collections,
 )
 
 
@@ -634,6 +653,246 @@ async def list_tools() -> list[Tool]:
                 "properties": {}
             }
         ),
+# Ecommerce tools - Shopify
+        Tool(
+            name="buzzposter_connect_shopify",
+            description="Connect a Shopify store. Requires store domain and Storefront API access token. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "store_domain": {"type": "string", "description": "Shopify store domain (e.g., mystore.myshopify.com)"},
+                    "storefront_token": {"type": "string", "description": "Storefront API access token"}
+                },
+                "required": ["store_domain", "storefront_token"]
+            }
+        ),
+        Tool(
+            name="buzzposter_shopify_products",
+            description="Get products from connected Shopify store. Returns normalized product data. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "store_domain": {"type": "string", "description": "Shopify store domain"},
+                    "limit": {"type": "integer", "description": "Number of products (max 250)", "default": 20},
+                    "collection": {"type": "string", "description": "Optional collection handle to filter"}
+                },
+                "required": ["store_domain"]
+            }
+        ),
+        Tool(
+            name="buzzposter_shopify_collections",
+            description="List collections from Shopify store. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "store_domain": {"type": "string", "description": "Shopify store domain"}
+                },
+                "required": ["store_domain"]
+            }
+        ),
+        Tool(
+            name="buzzposter_shopify_bestsellers",
+            description="Get bestselling products from Shopify store. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "store_domain": {"type": "string", "description": "Shopify store domain"},
+                    "limit": {"type": "integer", "description": "Number of products", "default": 10}
+                },
+                "required": ["store_domain"]
+            }
+        ),
+        # Ecommerce tools - WooCommerce
+        Tool(
+            name="buzzposter_connect_woocommerce",
+            description="Connect a WooCommerce store. Requires site URL, consumer key, and consumer secret. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "site_url": {"type": "string", "description": "WooCommerce site URL"},
+                    "consumer_key": {"type": "string", "description": "WooCommerce API consumer key"},
+                    "consumer_secret": {"type": "string", "description": "WooCommerce API consumer secret"}
+                },
+                "required": ["site_url", "consumer_key", "consumer_secret"]
+            }
+        ),
+        Tool(
+            name="buzzposter_woo_products",
+            description="Get products from connected WooCommerce store. Returns normalized product data. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "site_url": {"type": "string", "description": "WooCommerce site URL"},
+                    "limit": {"type": "integer", "description": "Number of products", "default": 20},
+                    "category": {"type": "integer", "description": "Optional category ID to filter"},
+                    "on_sale": {"type": "boolean", "description": "Filter by on-sale products", "default": False},
+                    "orderby": {"type": "string", "description": "Sort order", "enum": ["date", "popularity", "rating", "price"], "default": "date"}
+                },
+                "required": ["site_url"]
+            }
+        ),
+        Tool(
+            name="buzzposter_woo_categories",
+            description="List product categories from WooCommerce store. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "site_url": {"type": "string", "description": "WooCommerce site URL"}
+                },
+                "required": ["site_url"]
+            }
+        ),
+        Tool(
+            name="buzzposter_woo_reviews",
+            description="Get product reviews from WooCommerce store. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "site_url": {"type": "string", "description": "WooCommerce site URL"},
+                    "product_id": {"type": "integer", "description": "Optional specific product ID"}
+                },
+                "required": ["site_url"]
+            }
+        ),
+        Tool(
+            name="buzzposter_woo_bestsellers",
+            description="Get bestselling products from WooCommerce store. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "site_url": {"type": "string", "description": "WooCommerce site URL"},
+                    "limit": {"type": "integer", "description": "Number of products", "default": 10}
+                },
+                "required": ["site_url"]
+            }
+        ),
+        # Ecommerce tools - Etsy
+        Tool(
+            name="buzzposter_connect_etsy",
+            description="Connect an Etsy shop. Requires API keystring, OAuth tokens, and shop ID. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "api_keystring": {"type": "string", "description": "Etsy API keystring"},
+                    "access_token": {"type": "string", "description": "OAuth access token"},
+                    "refresh_token": {"type": "string", "description": "OAuth refresh token"},
+                    "shop_id": {"type": "string", "description": "Etsy shop ID"}
+                },
+                "required": ["api_keystring", "access_token", "refresh_token", "shop_id"]
+            }
+        ),
+        Tool(
+            name="buzzposter_etsy_listings",
+            description="Get listings from connected Etsy shop. Returns normalized product data. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "shop_id": {"type": "string", "description": "Etsy shop ID"},
+                    "limit": {"type": "integer", "description": "Number of listings", "default": 25},
+                    "sort_on": {"type": "string", "description": "Sort field", "enum": ["created", "price", "score"], "default": "created"},
+                    "state": {"type": "string", "description": "Listing state", "enum": ["active", "inactive", "sold_out", "draft"], "default": "active"}
+                },
+                "required": ["shop_id"]
+            }
+        ),
+        Tool(
+            name="buzzposter_etsy_listing_images",
+            description="Get images for a specific Etsy listing. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "listing_id": {"type": "string", "description": "Etsy listing ID"}
+                },
+                "required": ["listing_id"]
+            }
+        ),
+        Tool(
+            name="buzzposter_etsy_shop_reviews",
+            description="Get reviews for an Etsy shop. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "shop_id": {"type": "string", "description": "Etsy shop ID"},
+                    "limit": {"type": "integer", "description": "Number of reviews", "default": 25}
+                },
+                "required": ["shop_id"]
+            }
+        ),
+        Tool(
+            name="buzzposter_etsy_shop_sections",
+            description="Get sections (categories) for an Etsy shop. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "shop_id": {"type": "string", "description": "Etsy shop ID"}
+                },
+                "required": ["shop_id"]
+            }
+        ),
+        # Ecommerce tools - Universal wrappers
+        Tool(
+            name="buzzposter_get_products",
+            description="Universal product getter - routes to Shopify, WooCommerce, or Etsy. Returns normalized products. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "platform": {"type": "string", "description": "Platform", "enum": ["shopify", "woocommerce", "etsy"]},
+                    "store_id": {"type": "string", "description": "Store domain or shop ID"},
+                    "limit": {"type": "integer", "description": "Number of products", "default": 20}
+                },
+                "required": ["platform", "store_id"]
+            }
+        ),
+        Tool(
+            name="buzzposter_get_bestsellers",
+            description="Universal bestsellers getter - routes to Shopify, WooCommerce, or Etsy. Returns normalized products. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "platform": {"type": "string", "description": "Platform", "enum": ["shopify", "woocommerce", "etsy"]},
+                    "store_id": {"type": "string", "description": "Store domain or shop ID"},
+                    "limit": {"type": "integer", "description": "Number of products", "default": 10}
+                },
+                "required": ["platform", "store_id"]
+            }
+        ),
+        Tool(
+            name="buzzposter_get_reviews",
+            description="Universal reviews getter - routes to WooCommerce or Etsy (Shopify not supported). Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "platform": {"type": "string", "description": "Platform", "enum": ["woocommerce", "etsy"]},
+                    "store_id": {"type": "string", "description": "Store domain or shop ID"},
+                    "product_id": {"type": "string", "description": "Optional specific product ID"}
+                },
+                "required": ["platform", "store_id"]
+            }
+        ),
+        Tool(
+            name="buzzposter_get_on_sale",
+            description="Universal sale items getter - currently only WooCommerce supported. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "platform": {"type": "string", "description": "Platform", "enum": ["woocommerce"]},
+                    "store_id": {"type": "string", "description": "Store domain"}
+                },
+                "required": ["platform", "store_id"]
+            }
+        ),
+        Tool(
+            name="buzzposter_get_collections",
+            description="Universal collections/categories getter - routes to Shopify, WooCommerce, or Etsy. Pro/Business tier only.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "platform": {"type": "string", "description": "Platform", "enum": ["shopify", "woocommerce", "etsy"]},
+                    "store_id": {"type": "string", "description": "Store domain or shop ID"}
+                },
+                "required": ["platform", "store_id"]
+            }
+        ),
     ]
 
 
@@ -681,6 +940,25 @@ async def call_tool(name: str, arguments: dict, request: Request) -> list[TextCo
             "buzzposter_publish_webflow": lambda: buzzposter_publish_webflow(user_ctx, **arguments),
             "buzzposter_connect_platform": lambda: buzzposter_connect_platform(user_ctx, **arguments),
             "buzzposter_list_integrations": lambda: buzzposter_list_integrations(user_ctx),
+"buzzposter_connect_shopify": lambda: buzzposter_connect_shopify(user_ctx, **arguments),
+            "buzzposter_shopify_products": lambda: buzzposter_shopify_products(user_ctx, **arguments),
+            "buzzposter_shopify_collections": lambda: buzzposter_shopify_collections(user_ctx, **arguments),
+            "buzzposter_shopify_bestsellers": lambda: buzzposter_shopify_bestsellers(user_ctx, **arguments),
+            "buzzposter_connect_woocommerce": lambda: buzzposter_connect_woocommerce(user_ctx, **arguments),
+            "buzzposter_woo_products": lambda: buzzposter_woo_products(user_ctx, **arguments),
+            "buzzposter_woo_categories": lambda: buzzposter_woo_categories(user_ctx, **arguments),
+            "buzzposter_woo_reviews": lambda: buzzposter_woo_reviews(user_ctx, **arguments),
+            "buzzposter_woo_bestsellers": lambda: buzzposter_woo_bestsellers(user_ctx, **arguments),
+            "buzzposter_connect_etsy": lambda: buzzposter_connect_etsy(user_ctx, **arguments),
+            "buzzposter_etsy_listings": lambda: buzzposter_etsy_listings(user_ctx, **arguments),
+            "buzzposter_etsy_listing_images": lambda: buzzposter_etsy_listing_images(user_ctx, **arguments),
+            "buzzposter_etsy_shop_reviews": lambda: buzzposter_etsy_shop_reviews(user_ctx, **arguments),
+            "buzzposter_etsy_shop_sections": lambda: buzzposter_etsy_shop_sections(user_ctx, **arguments),
+            "buzzposter_get_products": lambda: buzzposter_get_products(user_ctx, **arguments),
+            "buzzposter_get_bestsellers": lambda: buzzposter_get_bestsellers(user_ctx, **arguments),
+            "buzzposter_get_reviews": lambda: buzzposter_get_reviews(user_ctx, **arguments),
+            "buzzposter_get_on_sale": lambda: buzzposter_get_on_sale(user_ctx, **arguments),
+            "buzzposter_get_collections": lambda: buzzposter_get_collections(user_ctx, **arguments),
         }
 
         handler = tool_map.get(name)

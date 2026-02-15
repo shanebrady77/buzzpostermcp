@@ -44,6 +44,27 @@ from .integrations import (
     buzzposter_connect_platform,
     buzzposter_list_integrations,
 )
+from .ecommerce import (
+    buzzposter_connect_shopify,
+    buzzposter_shopify_products,
+    buzzposter_shopify_collections,
+    buzzposter_shopify_bestsellers,
+    buzzposter_connect_woocommerce,
+    buzzposter_woo_products,
+    buzzposter_woo_categories,
+    buzzposter_woo_reviews,
+    buzzposter_woo_bestsellers,
+    buzzposter_connect_etsy,
+    buzzposter_etsy_listings,
+    buzzposter_etsy_listing_images,
+    buzzposter_etsy_shop_reviews,
+    buzzposter_etsy_shop_sections,
+    buzzposter_get_products,
+    buzzposter_get_bestsellers,
+    buzzposter_get_reviews,
+    buzzposter_get_on_sale,
+    buzzposter_get_collections,
+)
 
 __all__ = [
     # Feed tools
@@ -84,4 +105,24 @@ __all__ = [
     "buzzposter_publish_webflow",
     "buzzposter_connect_platform",
     "buzzposter_list_integrations",
+    # Ecommerce tools
+    "buzzposter_connect_shopify",
+    "buzzposter_shopify_products",
+    "buzzposter_shopify_collections",
+    "buzzposter_shopify_bestsellers",
+    "buzzposter_connect_woocommerce",
+    "buzzposter_woo_products",
+    "buzzposter_woo_categories",
+    "buzzposter_woo_reviews",
+    "buzzposter_woo_bestsellers",
+    "buzzposter_connect_etsy",
+    "buzzposter_etsy_listings",
+    "buzzposter_etsy_listing_images",
+    "buzzposter_etsy_shop_reviews",
+    "buzzposter_etsy_shop_sections",
+    "buzzposter_get_products",
+    "buzzposter_get_bestsellers",
+    "buzzposter_get_reviews",
+    "buzzposter_get_on_sale",
+    "buzzposter_get_collections",
 ]

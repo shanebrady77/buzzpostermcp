@@ -27,6 +27,7 @@ class User(Base):
     user_profile = relationship("UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
     media_files = relationship("Media", back_populates="user", cascade="all, delete-orphan")
     integrations = relationship("UserIntegration", back_populates="user", cascade="all, delete-orphan")
+    connected_stores = relationship("ConnectedStore", back_populates="user", cascade="all, delete-orphan")
 
 
 class UsageLog(Base):
@@ -118,4 +119,25 @@ class UserIntegration(Base):
     # Indexes for efficient queries
     __table_args__ = (
         Index('idx_user_platform', 'user_id', 'platform'),
+    )
+
+
+class ConnectedStore(Base):
+    __tablename__ = "connected_stores"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    platform = Column(String(50), nullable=False)  # shopify, woocommerce, etsy
+    store_domain = Column(String(255), nullable=True)  # Shopify/WooCommerce store domain
+    shop_id = Column(String(255), nullable=True)  # Etsy shop ID
+    credentials = Column(JSON, nullable=False)  # Platform-specific credentials (encrypted storage recommended)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationship
+    user = relationship("User", back_populates="connected_stores")
+
+    # Indexes for efficient queries
+    __table_args__ = (
+        Index('idx_user_store', 'user_id', 'platform'),
     )
